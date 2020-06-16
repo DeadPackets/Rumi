@@ -77,6 +77,31 @@ target 'Rumi' do
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
 
+  pod 'react-native-splash-screen', :path => '../node_modules/react-native-splash-screen'
+
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
+
+
+  pod 'RNDeviceInfo', :path => '../node_modules/react-native-device-info'
+
+
+  pod 'react-native-network-info', :path => '../node_modules/react-native-network-info'
+
+  pod 'react-native-carrier-info', :path => '../node_modules/react-native-carrier-info'
+
+  pod 'react-native-netinfo', :path => '../node_modules/@react-native-community/netinfo'
+
+  pod 'react-native-zeroconf', :path => '../node_modules/react-native-zeroconf'
+
+
+  pod 'RNFS', :path => '../node_modules/react-native-fs'
+
+  pod 'jail-monkey', :path => '../node_modules/jail-monkey'
+
+  pod 'RNCClipboard', :path => '../node_modules/@react-native-community/clipboard'
+
+  pod 'RCTSystemSetting', :path => '../node_modules/react-native-system-setting'
+
   target 'RumiTests' do
     inherit! :complete
     # Pods for testing

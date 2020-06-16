@@ -4,6 +4,22 @@ import android.app.Application;
 import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
+import com.gointegro.accountmanager.AccountManagerPackage;
+// import com.joshblour.reactnativeheading.ReactNativeHeadingPackage;
+// import com.RNProximity.RNProximityPackage;
+import com.ninty.system.setting.SystemSettingPackage;
+import com.reactnativecommunity.clipboard.ClipboardPackage;
+import com.gantix.JailMonkey.JailMonkeyPackage;
+import com.rumi.AndroidInformationPackage;
+import com.rnfs.RNFSPackage;
+import com.balthazargronon.RCTZeroconf.ZeroconfReactPackage;
+import com.reactnativecommunity.netinfo.NetInfoPackage;
+import com.ianlin.RNCarrierInfo.RNCarrierInfoPackage;
+import com.pusherman.networkinfo.RNNetworkInfoPackage;
+import com.learnium.RNDeviceInfo.RNDeviceInfo;
+import com.rpt.reactnativecheckpackageinstallation.CheckPackageInstallationPackage;
+import com.oblador.vectoricons.VectorIconsPackage;
+import org.devio.rn.splashscreen.SplashScreenReactPackage;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
@@ -26,6 +42,7 @@ public class MainApplication extends Application implements ReactApplication {
           List<ReactPackage> packages = new PackageList(this).getPackages();
           // Packages that cannot be autolinked yet can be added manually here, for example:
           // packages.add(new MyReactNativePackage());
+          packages.add(new AndroidInformationPackage());
           return packages;
         }
 
