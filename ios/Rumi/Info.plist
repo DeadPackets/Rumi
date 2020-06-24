@@ -71,6 +71,15 @@
 		<string>Octicons.ttf</string>
 		<string>SimpleLineIcons.ttf</string>
 		<string>Zocial.ttf</string>
+		<string>Helvetica.ttf</string>
+		<string>OpenSans.ttf</string>
+		<string>ProximaNova.ttf</string>
+		<string>Helvetica-Bold.ttf</string>
+		<string>HelveticaNeueLight.ttf</string>
+		<string>OpenSans-Bold.ttf</string>
+		<string>OpenSans-Light.ttf</string>
+		<string>ProximaNova-Bold.ttf</string>
+		<string>ProximaNova-Light.ttf</string>
 	</array>
 </dict>
 </plist>

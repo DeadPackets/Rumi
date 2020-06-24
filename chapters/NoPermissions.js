@@ -10,13 +10,14 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
-import {robotoWeights, material} from 'react-native-typography';
+import {material, human} from 'react-native-typography';
 import * as Animatable from 'react-native-animatable';
-import {Button} from 'react-native-elements';
+import {Button, Divider} from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 //Libraries to get info
 import {AppInstalledChecker} from 'react-native-check-app-install';
+import Markdown from 'react-native-markdown-display';
 import DeviceInfo from 'react-native-device-info';
 import {NetworkInfo} from 'react-native-network-info';
 import CarrierInfo from 'react-native-carrier-info';
@@ -27,9 +28,9 @@ const zeroconf = new Zeroconf();
 import JailMonkey from 'jail-monkey';
 import Clipboard from '@react-native-community/clipboard';
 import SystemSetting from 'react-native-system-setting';
+import Dots from 'react-native-dots-pagination';
 import ReactNativeHeading from 'react-native-heading';
 import Proximity from 'react-native-proximity';
-import AccountManager from 'react-native-account-manager';
 const {AndroidInformation} = NativeModules;
 
 export default class NoPermissions extends Component {
@@ -55,33 +56,67 @@ export default class NoPermissions extends Component {
   }
 
   componentDidMount() {
-    Clipboard.getString().then(content => {
-      this.state.clipboard = content;
-    });
-
-    AndroidInformation.getCommand('uname -r')
-      .then(res => {
-        this.state.kernelVer = res;
-      })
-      .catch(err => {
-        this.state.kernelVer = 'error';
+    //Some stuff needs to be refreshed every 2 seconds
+    this.intervalID = setInterval(() => {
+      SystemSetting.isWifiEnabled().then(enabled => {
+        this.state.isWifiEnabled = enabled ? 'On' : 'Off';
+        this.setState(this.state);
       });
 
-    AndroidInformation.getCommand('uptime -p')
-      .then(res => {
-        this.state.uptime = res;
-      })
-      .catch(err => {
-        this.state.uptime = 'error';
+      SystemSetting.isBluetoothEnabled().then(enabled => {
+        this.state.isBluetoothEnabled = enabled ? 'On' : 'Off';
+        this.setState(this.state);
       });
 
-    AndroidInformation.isVPNActive()
-      .then(res => {
-        this.state.vpnActive = res;
-      })
-      .catch(err => {
-        this.state.vpnActive = false;
+      //get the current brightness
+      SystemSetting.getBrightness().then(brightness => {
+        this.state.brightnessLevel = brightness;
+        this.setState(this.state);
       });
+
+      SystemSetting.getVolume().then(volume => {
+        this.state.volumeLevel = volume;
+        this.setState(this.state);
+      });
+
+      Clipboard.getString().then(content => {
+        this.state.clipboard = content;
+      });
+
+      AndroidInformation.getCommand('uname -r')
+        .then(res => {
+          this.state.kernelVer = res;
+        })
+        .catch(err => {
+          this.state.kernelVer = 'error';
+        });
+
+      AndroidInformation.getCommand('uptime -p')
+        .then(res => {
+          this.state.uptime = res;
+        })
+        .catch(err => {
+          this.state.uptime = 'error';
+        });
+
+      AndroidInformation.isVPNActive()
+        .then(res => {
+          this.state.vpnActive = res;
+        })
+        .catch(err => {
+          this.state.vpnActive = false;
+        });
+
+      AndroidInformation.isListeningToMusic().then(res => {
+        this.state.isListeningToMusic = res;
+        this.setState(this.state);
+      });
+
+      AndroidInformation.getRingerMode().then(mode => {
+        this.state.ringerMode = mode;
+        this.setState(this.state);
+      });
+    }, 2000);
 
     fetch('http://doubleclick.net')
       .then(res => {
@@ -106,11 +141,6 @@ export default class NoPermissions extends Component {
 
     AndroidInformation.installedApps().then(res => {
       this.state.numApps = res;
-      this.setState(this.state);
-    });
-
-    AndroidInformation.isListeningToMusic().then(res => {
-      this.state.isListeningToMusic = res;
       this.setState(this.state);
     });
 
@@ -213,6 +243,10 @@ export default class NoPermissions extends Component {
     });
   }
 
+  componentWillUnmount() {
+    clearInterval(this.intervalID);
+  }
+
   nextChapter() {
     this.props.advanceState();
   }
@@ -253,24 +287,11 @@ export default class NoPermissions extends Component {
         return (
           <Animatable.View animation="fadeIn" style={styles.contentView}>
             <Icon name="home" size={100} color="#eee" />
-            <Text
-              style={[
-                material.display1,
-                robotoWeights.bold,
-                styles.titleStyle,
-              ]}>
-              Part 1
-            </Text>
-            <Text
-              style={[
-                material.headline,
-                robotoWeights.bold,
-                styles.titleStyle,
-              ]}>
+            <Text style={[material.display1, styles.titleStyle]}>Part 1</Text>
+            <Text style={[material.display2, styles.titleStyle]}>
               System Given Permissions
             </Text>
-            <Text
-              style={[material.title, robotoWeights.light, styles.bodyStyle]}>
+            <Text style={[human.title2, styles.bodyStyle]}>
               This part will focus on gathering information using permissions
               automatically given to the app upon installation, without any
               prompts to the user. These permissions can usually be found upon
@@ -279,52 +300,72 @@ export default class NoPermissions extends Component {
           </Animatable.View>
         );
       case 1:
+        const content = `
+
+        # Device Information
+        ---
+        You are currently using a ${DeviceInfo.getBrand()} ${DeviceInfo.getModel()} (called "${DeviceInfo.getDeviceNameSync()}") which is running ${DeviceInfo.getSystemName()} ${DeviceInfo.getSystemVersion()}.
+
+        # Device Type
+        ---
+        Your device is a ${DeviceInfo.getDeviceType()} and is ${
+          DeviceInfo.isEmulatorSync() ? '' : 'not'
+        } an emulator.
+
+        # Device Design
+        ---
+        Your device is in ${
+          DeviceInfo.isLandscapeSync() ? 'landscape' : 'portrait'
+        } mode and ${
+          DeviceInfo.hasNotch() ? 'has a notch' : 'does not have a notch'
+        }.
+
+        # Audio Information
+        ---
+        You ${DeviceInfo.isHeadphonesConnectedSync() ? '' : 'do not'} have
+        headphones/earphones connected. You are also currently ${
+          this.state.isListeningToMusic ? 'are' : 'are not'
+        } listening to music.
+        `
+          .split(/\r?\n/)
+          .map(row =>
+            row
+              .trim()
+              .split(/\s+/)
+              .join(' '),
+          )
+          .join('\n');
         return (
-          <ScrollView
-            contentContainerStyle={styles.contentView}
-            bounces={false}
-            key={this.state.chapter}>
+          <>
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              style={[
-                material.display1,
-                robotoWeights.bold,
-                styles.titleStyle,
-              ]}>
-              Basic Information
+              style={[material.display2, styles.titleStyle]}>
+              General Information
             </Animatable.Text>
-            <Animatable.Text
+            <ScrollView
+              contentContainerStyle={styles.markdownContentView}
+              bounces={false}
+              key={this.state.chapter}>
+              {/* <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               You are currently using a {DeviceInfo.getBrand()}{' '}
               {DeviceInfo.getModel()} (called "{DeviceInfo.getDeviceNameSync()}
               ") running {DeviceInfo.getSystemName()}{' '}
               {DeviceInfo.getSystemVersion()}. You are{' '}
-              {DeviceInfo.isEmulatorSync() ? '' : 'not'} using an emulator.
+              {DeviceInfo.isEmulatorSync() ? '' : 'not'}using an emulator.{' '}
             </Animatable.Text>
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={2000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               Apps can use this information to find your exact device's model
               and specs.
             </Animatable.Text>
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={4000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               Your device is a {DeviceInfo.getDeviceType()} that{' '}
               {DeviceInfo.hasNotch() ? 'has a notch' : 'does not have a notch'}.
               It is currently in{' '}
@@ -336,11 +377,7 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={6000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               You {DeviceInfo.isHeadphonesConnectedSync() ? '' : 'do not'} have
               headphones/earphones connected. Airplane mode is switched{' '}
               {DeviceInfo.isAirplaneModeSync() ? 'on' : 'off'}.
@@ -348,11 +385,7 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={8000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               Without the location permission, I can tell you have location
               serivices{' '}
               {DeviceInfo.isLocationEnabledSync() ? 'enabled' : 'disabled'}. I
@@ -363,15 +396,15 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={10000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               The latest security patch your phone has installed is{' '}
               {DeviceInfo.getSecurityPatchSync()}.
-            </Animatable.Text>
-          </ScrollView>
+            </Animatable.Text> */}
+              <Markdown debugPrintTree={true} mergeStyle={true} style={styles}>
+                {content}
+              </Markdown>
+            </ScrollView>
+          </>
         );
       case 2:
         return (
@@ -381,20 +414,12 @@ export default class NoPermissions extends Component {
             key={this.state.chapter}>
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              style={[
-                material.display1,
-                robotoWeights.bold,
-                styles.titleStyle,
-              ]}>
+              style={[material.display2, styles.titleStyle]}>
               Network Information
             </Animatable.Text>
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               You are currently connected to the internet via{' '}
               {this.state.netinfo.type}.{' '}
               {this.state.netinfo.type === 'wifi'
@@ -417,11 +442,7 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={2000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               You have a local IP address of {this.state.localIP} and a public
               IP of {this.state.publicIP}. The IP of your gateway (your router
               probably) is {this.state.gatewayIP}. Your device's WiFi chip has
@@ -430,11 +451,7 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={4000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               Using the internet, I can tell that your device's WiFi chip was
               manufactured by {this.state.wifiMan}. I can also tell that you{' '}
               {this.state.adsBlocked
@@ -444,11 +461,7 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={6000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               I tried to access your router's web interface in the background.
               It{' '}
               {this.state.routerWeb === 'UNKNOWN'
@@ -462,11 +475,7 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={8000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               Using your IP, I found out that you are probably located in{' '}
               {this.state.ipInfo.city}, {this.state.ipInfo.country}. Your ISP is{' '}
               {this.state.ipInfo.isp}. You{' '}
@@ -477,11 +486,7 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={10000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               I can scan the network for devices. For example, I found{' '}
               {this.state.chromecasts.length > 0
                 ? `${
@@ -499,20 +504,12 @@ export default class NoPermissions extends Component {
             key={this.state.chapter}>
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              style={[
-                material.display1,
-                robotoWeights.bold,
-                styles.titleStyle,
-              ]}>
+              style={[material.display2, styles.titleStyle]}>
               System Information
             </Animatable.Text>
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               The battery is currently{' '}
               {DeviceInfo.getPowerStateSync().batteryState} at{' '}
               {(DeviceInfo.getPowerStateSync().batteryLevel * 100).toFixed(1)}%
@@ -523,11 +520,7 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={2000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               You have used{' '}
               {this.humanFileSize(
                 this.state.spaceInfo.totalSpace -
@@ -547,11 +540,7 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={4000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               This app is using{' '}
               {this.humanFileSize(DeviceInfo.getUsedMemorySync(), 1)} of RAM out
               of your total available{' '}
@@ -566,27 +555,19 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={6000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               I can detect that you have global dark mode{' '}
               {Appearance.getColorScheme() === 'dark' ? 'enabled' : 'disabled'}{' '}
               on this device. The virtual screen resolution is{' '}
-              {Dimensions.get('window').height} x{' '}
-              {Dimensions.get('window').width}. You are currently{' '}
+              {parseInt(Dimensions.get('window').height)} x{' '}
+              {parseInt(Dimensions.get('window').width)}. You are currently{' '}
               {this.state.isListeningToMusic ? 'are' : 'are not'} listening to
               music.
             </Animatable.Text>
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={8000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               You have {this.state.numApps} applications installed on your
               device. Out of those apps, I can find apps within certain
               categories. For example, here are all the browsers installed on
@@ -599,11 +580,7 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={10000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               I can additionally check if certain apps are installed. For
               example, I can tell that you have installed:{' '}
               {this.state.appsInstalled.join(', ')}.
@@ -611,11 +588,7 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={12000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               You are running Android with linux kernel version{' '}
               {this.state.kernelVer.trim()}. The phone has been{' '}
               {this.state.uptime.trim()}.
@@ -623,11 +596,7 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={14000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               I can grab whatever you have in your clipboard (what you recently
               copied). You have "{this.state.clipboard}" inside your clipboard
               right now.
@@ -635,12 +604,8 @@ export default class NoPermissions extends Component {
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               delay={16000}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
-              Finally, I can detect that this device is{' '}
+              style={[human.title2, styles.bodyStyle]}>
+              I can detect that this device is{' '}
               {JailMonkey.isJailBroken() ? '' : 'not '}rooted/jailbroken. Your
               device is{' '}
               {JailMonkey.canMockLocation()
@@ -657,6 +622,17 @@ export default class NoPermissions extends Component {
               . Lastly, this app {JailMonkey.isDebuggedMode() ? 'is' : 'is not'}{' '}
               running in debug mode.
             </Animatable.Text>
+            <Animatable.Text
+              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
+              delay={18000}
+              style={[human.title2, styles.bodyStyle]}>
+              I can detect that you have WiFi{' '}
+              {this.state.isWifiEnabled ? 'enabled' : 'disabled'}. I can also
+              detect that you have Bluetooth{' '}
+              {this.state.isBluetoothEnabled ? 'enabled' : 'disabled'}. Your
+              volume is at {(this.state.volumeLevel * 100).toFixed(1)}% and your
+              brightness is at {(this.state.brightnessLevel * 100).toFixed(1)}%.
+            </Animatable.Text>
           </ScrollView>
         );
       case 4:
@@ -667,20 +643,12 @@ export default class NoPermissions extends Component {
             key={this.state.chapter}>
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              style={[
-                material.display1,
-                robotoWeights.bold,
-                styles.titleStyle,
-              ]}>
+              style={[material.display2, styles.titleStyle]}>
               Device Sensors
             </Animatable.Text>
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              style={[
-                material.subheading,
-                robotoWeights.light,
-                styles.bodyStyle,
-              ]}>
+              style={[human.title2, styles.bodyStyle]}>
               Bruh momento.
             </Animatable.Text>
           </ScrollView>
@@ -704,21 +672,27 @@ export default class NoPermissions extends Component {
             flexDirection: 'row',
             justifyContent: 'space-between',
             padding: 20,
+            paddingBottom: 10,
           }}>
           <Button
-            title="Back"
-            icon={{name: 'arrow-back', color: '#eee'}}
-            buttonStyle={{backgroundColor: '#0C1821'}}
+            icon={{name: 'arrow-back', color: '#eee', size: 30}}
+            buttonStyle={{backgroundColor: '#162B3C'}}
             style={{width: 80}}
             disabled={this.state.chapter > 0 ? false : true}
             disabledStyle={{backgroundColor: '#CCC9DC'}}
             onPress={this.goBack.bind(this)}
           />
+          <Dots
+            paddingVertical={20}
+            length={5}
+            activeColor="#ddd"
+            active={this.state.chapter}
+            passiveColor="#1b2a38"
+          />
           <Button
-            title="Next"
             iconRight
-            icon={{name: 'arrow-forward', color: '#eee'}}
-            buttonStyle={{backgroundColor: '#0C1821'}}
+            icon={{name: 'arrow-forward', color: '#eee', size: 30}}
+            buttonStyle={{backgroundColor: '#162B3C'}}
             style={{width: 80}}
             onPress={this.goNext.bind(this)}
           />
@@ -740,13 +714,50 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
   },
+  markdownContentView: {
+    flexGrow: 1,
+    // alignItems: 'center',
+    padding: 20,
+  },
   titleStyle: {
     color: '#eee',
-    paddingTop: 20,
+    fontFamily: 'monospace',
+    textAlign: 'center',
   },
   bodyStyle: {
+    flexGrow: 1,
     color: '#eee',
     padding: 20,
     textAlign: 'center',
+    fontFamily: 'ProximaNova',
+  },
+  body: {
+    ...human.title3,
+    flex: 1,
+    color: '#eee',
+    fontFamily: 'ProximaNova',
+  },
+  hr: {
+    backgroundColor: '#999',
+    marginTop: 5,
+    height: 1,
+  },
+  list_item: {
+    marginTop: 0,
+    marginBottom: 0,
+    ...human.body,
+  },
+  bullet_list_icon: {
+    color: '#eee',
+  },
+  paragraph: {
+    color: '#eee',
+    fontFamily: 'ProximaNova',
+    paddingBottom: 10,
+  },
+  heading1: {
+    ...human.title2,
+    color: '#eee',
+    fontFamily: 'ProximaNova-Light',
   },
 });

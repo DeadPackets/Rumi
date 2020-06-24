@@ -16,10 +16,15 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.accounts.*;
+import android.util.Patterns;
+import android.bluetooth.BluetoothAdapter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.*;
 import java.net.NetworkInterface;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -57,6 +62,27 @@ public class AndroidInformationModule extends ReactContextBaseJavaModule {
 		try {
 			AudioManager manager = (AudioManager) getReactApplicationContext().getSystemService(Context.AUDIO_SERVICE);
 			promise.resolve(manager.isMusicActive());
+		} catch (Exception e) {
+			promise.reject("ERROR", e);
+		}
+	}
+
+	@ReactMethod
+    public void getRingerMode(Promise promise) {
+		//Returns if the user is currently listening to music
+		try {
+			AudioManager manager = (AudioManager) getReactApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+			switch (manager.getRingerMode()) {
+				case AudioManager.RINGER_MODE_SILENT:
+					promise.resolve("silent");
+					break;
+				case AudioManager.RINGER_MODE_VIBRATE:
+					promise.resolve("vibrate");
+					break;
+				case AudioManager.RINGER_MODE_NORMAL:
+					promise.resolve("normal");
+					break;
+			}
 		} catch (Exception e) {
 			promise.reject("ERROR", e);
 		}
@@ -115,6 +141,16 @@ public class AndroidInformationModule extends ReactContextBaseJavaModule {
             // Waits for the command to finish.
             process.waitFor();
             promise.resolve(output.toString());
+		} catch (Exception e) {
+			promise.reject("ERROR", e);
+		}
+	}
+
+	@ReactMethod
+	public void getBluetoothInfo(Promise promise) {
+		try {
+			HashMap<String, String> res = new HashMap<>();
+			WritableMap map = new WritableNativeMap();
 		} catch (Exception e) {
 			promise.reject("ERROR", e);
 		}

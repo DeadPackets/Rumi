@@ -35,6 +35,15 @@
 		21ED34BB23AA41D996FB8323 /* libRNClipboard.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 27A758DF51344391969AD9D2 /* libRNClipboard.a */; };
 		49BF94FDA7D346FD9290EE8C /* libRNProximity.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A975ACC67E134088B6207EB7 /* libRNProximity.a */; };
 		63E0A7E021F648F696B0A30F /* libReactNativeHeading.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BDC624BB33B4C4EBCA5D711 /* libReactNativeHeading.a */; };
+		8A66D0D30B5A40DD99778142 /* Helvetica.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 83E780212AEF4D3EAF5250C0 /* Helvetica.ttf */; };
+		C214514E1C3C43BF8B5DE17C /* OpenSans.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9C3585CFBB044641AECABA75 /* OpenSans.ttf */; };
+		CEAE53D824634DDFBAC5591A /* ProximaNova.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0BF7C56C26794ECF82D1F0AA /* ProximaNova.ttf */; };
+		5B0C0AAF88BA426EA4E834D5 /* Helvetica-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C325C70451D44362B2AA4717 /* Helvetica-Bold.ttf */; };
+		796A3029807845B1ACE9B475 /* HelveticaNeueLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D27EA55F4BE24D2BAC6F7DCC /* HelveticaNeueLight.ttf */; };
+		F3BD81C75AC34F009144248B /* OpenSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 37B6B202C2464B3081352DDC /* OpenSans-Bold.ttf */; };
+		A10183CBB6574A5EA37B51E8 /* OpenSans-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0A8FEA16B88F48698EF6E139 /* OpenSans-Light.ttf */; };
+		520EDA60D71D4CD3B0EFFCAF /* ProximaNova-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EA0925B00BBC498E9A0DC413 /* ProximaNova-Bold.ttf */; };
+		5EDDA5F97485408EAC84FFC4 /* ProximaNova-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2E1AB1F74A644374B62D2661 /* ProximaNova-Light.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,6 +101,15 @@
 		A975ACC67E134088B6207EB7 /* libRNProximity.a */ = {isa = PBXFileReference; name = "libRNProximity.a"; path = "libRNProximity.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
 		0686A9E9171242FE9C56460F /* ReactNativeHeading.xcodeproj */ = {isa = PBXFileReference; name = "ReactNativeHeading.xcodeproj"; path = "../node_modules/react-native-heading/ReactNativeHeading.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
 		7BDC624BB33B4C4EBCA5D711 /* libReactNativeHeading.a */ = {isa = PBXFileReference; name = "libReactNativeHeading.a"; path = "libReactNativeHeading.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
+		83E780212AEF4D3EAF5250C0 /* Helvetica.ttf */ = {isa = PBXFileReference; name = "Helvetica.ttf"; path = "../assets/Helvetica.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		9C3585CFBB044641AECABA75 /* OpenSans.ttf */ = {isa = PBXFileReference; name = "OpenSans.ttf"; path = "../assets/OpenSans.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		0BF7C56C26794ECF82D1F0AA /* ProximaNova.ttf */ = {isa = PBXFileReference; name = "ProximaNova.ttf"; path = "../assets/ProximaNova.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		C325C70451D44362B2AA4717 /* Helvetica-Bold.ttf */ = {isa = PBXFileReference; name = "Helvetica-Bold.ttf"; path = "../assets/Helvetica-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		D27EA55F4BE24D2BAC6F7DCC /* HelveticaNeueLight.ttf */ = {isa = PBXFileReference; name = "HelveticaNeueLight.ttf"; path = "../assets/HelveticaNeueLight.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		37B6B202C2464B3081352DDC /* OpenSans-Bold.ttf */ = {isa = PBXFileReference; name = "OpenSans-Bold.ttf"; path = "../assets/OpenSans-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		0A8FEA16B88F48698EF6E139 /* OpenSans-Light.ttf */ = {isa = PBXFileReference; name = "OpenSans-Light.ttf"; path = "../assets/OpenSans-Light.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		EA0925B00BBC498E9A0DC413 /* ProximaNova-Bold.ttf */ = {isa = PBXFileReference; name = "ProximaNova-Bold.ttf"; path = "../assets/ProximaNova-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		2E1AB1F74A644374B62D2661 /* ProximaNova-Light.ttf */ = {isa = PBXFileReference; name = "ProximaNova-Light.ttf"; path = "../assets/ProximaNova-Light.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -224,6 +242,15 @@
 				DA9C8A666AEF44C399F225FD /* Octicons.ttf */,
 				388BDDEAE1AD401D95A9E0D4 /* SimpleLineIcons.ttf */,
 				E6A65F356BF049E7BE3F9E93 /* Zocial.ttf */,
+				83E780212AEF4D3EAF5250C0 /* Helvetica.ttf */,
+				9C3585CFBB044641AECABA75 /* OpenSans.ttf */,
+				0BF7C56C26794ECF82D1F0AA /* ProximaNova.ttf */,
+				C325C70451D44362B2AA4717 /* Helvetica-Bold.ttf */,
+				D27EA55F4BE24D2BAC6F7DCC /* HelveticaNeueLight.ttf */,
+				37B6B202C2464B3081352DDC /* OpenSans-Bold.ttf */,
+				0A8FEA16B88F48698EF6E139 /* OpenSans-Light.ttf */,
+				EA0925B00BBC498E9A0DC413 /* ProximaNova-Bold.ttf */,
+				2E1AB1F74A644374B62D2661 /* ProximaNova-Light.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -383,6 +410,15 @@
 				990C3C87A228420F9C1B8757 /* Octicons.ttf in Resources */,
 				D37D4A189B6743F8AA1E5CB7 /* SimpleLineIcons.ttf in Resources */,
 				68C821B1AEA347368A51B06C /* Zocial.ttf in Resources */,
+				8A66D0D30B5A40DD99778142 /* Helvetica.ttf in Resources */,
+				C214514E1C3C43BF8B5DE17C /* OpenSans.ttf in Resources */,
+				CEAE53D824634DDFBAC5591A /* ProximaNova.ttf in Resources */,
+				5B0C0AAF88BA426EA4E834D5 /* Helvetica-Bold.ttf in Resources */,
+				796A3029807845B1ACE9B475 /* HelveticaNeueLight.ttf in Resources */,
+				F3BD81C75AC34F009144248B /* OpenSans-Bold.ttf in Resources */,
+				A10183CBB6574A5EA37B51E8 /* OpenSans-Light.ttf in Resources */,
+				520EDA60D71D4CD3B0EFFCAF /* ProximaNova-Bold.ttf in Resources */,
+				5EDDA5F97485408EAC84FFC4 /* ProximaNova-Light.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
