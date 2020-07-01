@@ -19,11 +19,17 @@ import android.net.Uri;
 import android.accounts.*;
 import android.util.Patterns;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothDevice;
+import android.provider.Settings;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.*;
 import java.net.NetworkInterface;
 import java.io.BufferedReader;
@@ -147,10 +153,96 @@ public class AndroidInformationModule extends ReactContextBaseJavaModule {
 	}
 
 	@ReactMethod
-	public void getBluetoothInfo(Promise promise) {
+	public void getPairedDevices(Promise promise) {
 		try {
-			HashMap<String, String> res = new HashMap<>();
-			WritableMap map = new WritableNativeMap();
+			BluetoothManager b = (BluetoothManager) getReactApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+			BluetoothAdapter adapter = b.getAdapter();
+			Set<BluetoothDevice> pairedDevices = adapter.getBondedDevices();
+			WritableArray resultSet = Arguments.createArray();
+			for(BluetoothDevice bt : pairedDevices) {
+				resultSet.pushString(bt.getName() + "[]" + bt.getAddress());
+			}
+			promise.resolve(resultSet);
+		} catch (Exception e) {
+			promise.reject("ERROR", e);
+		}
+	}
+
+	@ReactMethod
+	public void getBluetoothName(Promise promise) {
+		try {
+			BluetoothManager b = (BluetoothManager) getReactApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+			BluetoothAdapter adapter = b.getAdapter();
+			promise.resolve(adapter.getName());
+		} catch (Exception e) {
+			promise.reject("ERROR", e);
+		}
+	}
+
+	@ReactMethod
+	public void getADBEnabled(Promise promise) {
+		try {
+			promise.resolve(Settings.Global.getString(getReactApplicationContext().getContentResolver(), Settings.Global.ADB_ENABLED));
+		} catch (Exception e) {
+			promise.reject("ERROR", e);
+		}
+	}
+
+	@ReactMethod
+	public void getBootCount(Promise promise) {
+		try {
+			promise.resolve(Settings.Global.getString(getReactApplicationContext().getContentResolver(), Settings.Global.BOOT_COUNT));
+		} catch (Exception e) {
+			promise.reject("ERROR", e);
+		}
+	}
+
+	@ReactMethod
+	public void getRoaming(Promise promise) {
+		try {
+			promise.resolve(Settings.Global.getString(getReactApplicationContext().getContentResolver(), Settings.Global.DATA_ROAMING));
+		} catch (Exception e) {
+			promise.reject("ERROR", e);
+		}
+	}
+
+	@ReactMethod
+	public void getDevelopmentSettings(Promise promise) {
+		try {
+			promise.resolve(Settings.Global.getString(getReactApplicationContext().getContentResolver(), Settings.Global.DEVELOPMENT_SETTINGS_ENABLED));
+		} catch (Exception e) {
+			promise.reject("ERROR", e);
+		}
+	}
+
+	@ReactMethod
+	public void getScreenTimeout(Promise promise) {
+		try {
+			promise.resolve(Settings.System.getString(getReactApplicationContext().getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT));
+		} catch (Exception e) {
+			promise.reject("ERROR", e);
+		}
+	}
+
+	@ReactMethod
+	public void getAccessibility(Promise promise) {
+		try {
+			promise.resolve(Settings.Secure.getString(getReactApplicationContext().getContentResolver(), Settings.Secure.ACCESSIBILITY_ENABLED));
+		} catch (Exception e) {
+			promise.reject("ERROR", e);
+		}
+	}
+
+	@ReactMethod
+	public void getSensors(Promise promise) {
+		try {
+			SensorManager sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+			List<Sensor> sensors = sm.getSensorList(Sensor.TYPE_ALL);
+			WritableArray resultSet = Arguments.createArray();
+			for(Sensor s : sensors) {
+				resultSet.pushString(s.getName() + '[]' + s.getVendor();
+			}
+			promise.resolve(resultSet);
 		} catch (Exception e) {
 			promise.reject("ERROR", e);
 		}

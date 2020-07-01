@@ -50,33 +50,28 @@ export default class NoPermissions extends Component {
         totalSpace: '',
       },
       browserApps: [],
-      visited: [false, false, false, false],
+      visited: [false, false, false, false, false, false],
       appsInstalled: [],
+      pairedDevices: [],
+      kernelVer: '',
+      uptime: '',
     };
   }
 
   componentDidMount() {
     //Some stuff needs to be refreshed every 2 seconds
     this.intervalID = setInterval(() => {
-      SystemSetting.isWifiEnabled().then(enabled => {
-        this.state.isWifiEnabled = enabled ? 'On' : 'Off';
-        this.setState(this.state);
-      });
-
       SystemSetting.isBluetoothEnabled().then(enabled => {
         this.state.isBluetoothEnabled = enabled ? 'On' : 'Off';
-        this.setState(this.state);
       });
 
       //get the current brightness
       SystemSetting.getBrightness().then(brightness => {
         this.state.brightnessLevel = brightness;
-        this.setState(this.state);
       });
 
       SystemSetting.getVolume().then(volume => {
         this.state.volumeLevel = volume;
-        this.setState(this.state);
       });
 
       Clipboard.getString().then(content => {
@@ -109,7 +104,6 @@ export default class NoPermissions extends Component {
 
       AndroidInformation.isListeningToMusic().then(res => {
         this.state.isListeningToMusic = res;
-        this.setState(this.state);
       });
 
       AndroidInformation.getRingerMode().then(mode => {
@@ -117,6 +111,61 @@ export default class NoPermissions extends Component {
         this.setState(this.state);
       });
     }, 2000);
+
+    AndroidInformation.getSensors().then(res => {
+      this.state.ADBEnabled = res === '1';
+      this.setState(this.state);
+    });
+
+    AndroidInformation.getADBEnabled().then(res => {
+      this.state.ADBEnabled = res === '1';
+      this.setState(this.state);
+    });
+
+    AndroidInformation.getBootCount().then(res => {
+      this.state.bootCount = res;
+      this.setState(this.state);
+    });
+
+    AndroidInformation.getRoaming().then(res => {
+      this.state.isRoaming = res === '1';
+      this.setState(this.state);
+    });
+
+    AndroidInformation.getDevelopmentSettings().then(res => {
+      this.state.devSettings = res === '1';
+      this.setState(this.state);
+    });
+
+    AndroidInformation.getScreenTimeout().then(res => {
+      this.state.screenTimeout = res / 1000;
+      this.setState(this.state);
+    });
+
+    AndroidInformation.getAccessibility().then(res => {
+      this.state.isAccessibilityEnabled = res === '1';
+      this.setState(this.state);
+    });
+
+    AndroidInformation.getPairedDevices()
+      .then(devices => {
+        this.state.pairedDevices = devices;
+        this.setState(this.state);
+      })
+      .catch(err => {
+        this.state.pairedDevices = [];
+        this.setState(this.state);
+      });
+
+    AndroidInformation.getBluetoothName()
+      .then(name => {
+        this.state.bluetoothName = name;
+        this.setState(this.state);
+      })
+      .catch(err => {
+        this.state.bluetoothName = 'UNKNOWN';
+        this.setState(this.state);
+      });
 
     fetch('http://doubleclick.net')
       .then(res => {
@@ -130,11 +179,16 @@ export default class NoPermissions extends Component {
 
     AppInstalledChecker.getAppList().forEach(app => {
       AppInstalledChecker.isAppInstalled(app).then(result => {
-        if (result) {
-          if (this.state.appsInstalled.indexOf(app) === -1) {
-            this.state.appsInstalled.push(app);
-            this.setState(this.state);
-          }
+        if (this.state.appsInstalled.indexOf(app) === -1) {
+          this.state.appsInstalled.push({
+            name: app
+              .toLowerCase()
+              .split(' ')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' '),
+            result,
+          });
+          this.setState(this.state);
         }
       });
     });
@@ -282,50 +336,78 @@ export default class NoPermissions extends Component {
   }
 
   getComponent(index) {
+    let content;
     switch (index) {
       case 0:
         return (
-          <Animatable.View animation="fadeIn" style={styles.contentView}>
-            <Icon name="home" size={100} color="#eee" />
-            <Text style={[material.display1, styles.titleStyle]}>Part 1</Text>
-            <Text style={[material.display2, styles.titleStyle]}>
-              System Given Permissions
-            </Text>
-            <Text style={[human.title2, styles.bodyStyle]}>
-              This part will focus on gathering information using permissions
-              automatically given to the app upon installation, without any
-              prompts to the user. These permissions can usually be found upon
-              installation of the app.
-            </Text>
-          </Animatable.View>
+          <ScrollView>
+            <Animatable.View animation="fadeIn" style={styles.contentView}>
+              <Icon name="home" size={100} color="#eee" />
+              <Text style={[material.display1, styles.titleStyle]}>Part 1</Text>
+              <Text style={[material.display2, styles.titleStyle]}>
+                System Given Permissions
+              </Text>
+              <Text style={[human.title2, styles.bodyStyle]}>
+                This part will focus on gathering information using permissions
+                automatically given to the app upon installation, without any
+                prompts to the user. These permissions can usually be found upon
+                installation of the app.
+              </Text>
+              <Text style={[human.title2, styles.bodyStyle]}>
+                In other words, every other app you have installed on your phone
+                has access to this data.
+              </Text>
+            </Animatable.View>
+          </ScrollView>
         );
       case 1:
-        const content = `
+        content = `
 
         # Device Information
         ---
-        You are currently using a ${DeviceInfo.getBrand()} ${DeviceInfo.getModel()} (called "${DeviceInfo.getDeviceNameSync()}") which is running ${DeviceInfo.getSystemName()} ${DeviceInfo.getSystemVersion()}.
+        You are currently using a **${DeviceInfo.getBrand()} ${DeviceInfo.getModel()}** (called **"${DeviceInfo.getDeviceNameSync()}"**) which is running **${DeviceInfo.getSystemName()} ${DeviceInfo.getSystemVersion()}**.
 
         # Device Type
         ---
-        Your device is a ${DeviceInfo.getDeviceType()} and is ${
+        Your device is a **${DeviceInfo.getDeviceType()}** and is ${
           DeviceInfo.isEmulatorSync() ? '' : 'not'
         } an emulator.
 
         # Device Design
         ---
-        Your device is in ${
+        Your device is in **${
           DeviceInfo.isLandscapeSync() ? 'landscape' : 'portrait'
-        } mode and ${
+        }** mode and ${
           DeviceInfo.hasNotch() ? 'has a notch' : 'does not have a notch'
         }.
 
         # Audio Information
         ---
-        You ${DeviceInfo.isHeadphonesConnectedSync() ? '' : 'do not'} have
-        headphones/earphones connected. You are also currently ${
+        You ${
+          DeviceInfo.isHeadphonesConnectedSync() ? '' : 'do not'
+        } have headphones/earphones connected.
+
+        Your current volume level is at **${(
+          this.state.volumeLevel * 100
+        ).toFixed(1)}%**.
+
+        You are also currently ${
           this.state.isListeningToMusic ? 'are' : 'are not'
         } listening to music.
+
+        # Security Information
+        ---
+        I can detect that you ${
+          DeviceInfo.isPinOrFingerprintSetSync() ? 'have' : 'do not have'
+        } a PIN/Fingerprint lock set for this device.
+
+        Android reports that there ${
+          JailMonkey.hookDetected()
+            ? 'are some malicious apps installed'
+            : 'are no malicious apps installed'
+        } on this device.
+
+        Even scarier, I know that the date of your installed security patch is **${DeviceInfo.getSecurityPatchSync()}**.
         `
           .split(/\r?\n/)
           .map(row =>
@@ -346,294 +428,327 @@ export default class NoPermissions extends Component {
               contentContainerStyle={styles.markdownContentView}
               bounces={false}
               key={this.state.chapter}>
-              {/* <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              style={[human.title2, styles.bodyStyle]}>
-              You are currently using a {DeviceInfo.getBrand()}{' '}
-              {DeviceInfo.getModel()} (called "{DeviceInfo.getDeviceNameSync()}
-              ") running {DeviceInfo.getSystemName()}{' '}
-              {DeviceInfo.getSystemVersion()}. You are{' '}
-              {DeviceInfo.isEmulatorSync() ? '' : 'not'}using an emulator.{' '}
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={2000}
-              style={[human.title2, styles.bodyStyle]}>
-              Apps can use this information to find your exact device's model
-              and specs.
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={4000}
-              style={[human.title2, styles.bodyStyle]}>
-              Your device is a {DeviceInfo.getDeviceType()} that{' '}
-              {DeviceInfo.hasNotch() ? 'has a notch' : 'does not have a notch'}.
-              It is currently in{' '}
-              {DeviceInfo.isLandscapeSync()
-                ? 'landscape mode'
-                : 'portrait mode'}
-              .
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={6000}
-              style={[human.title2, styles.bodyStyle]}>
-              You {DeviceInfo.isHeadphonesConnectedSync() ? '' : 'do not'} have
-              headphones/earphones connected. Airplane mode is switched{' '}
-              {DeviceInfo.isAirplaneModeSync() ? 'on' : 'off'}.
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={8000}
-              style={[human.title2, styles.bodyStyle]}>
-              Without the location permission, I can tell you have location
-              serivices{' '}
-              {DeviceInfo.isLocationEnabledSync() ? 'enabled' : 'disabled'}. I
-              can also tell you{' '}
-              {DeviceInfo.isPinOrFingerprintSetSync() ? 'have' : 'do not have'}{' '}
-              a PIN/Fingerprint lock set for this device.
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={10000}
-              style={[human.title2, styles.bodyStyle]}>
-              The latest security patch your phone has installed is{' '}
-              {DeviceInfo.getSecurityPatchSync()}.
-            </Animatable.Text> */}
-              <Markdown debugPrintTree={true} mergeStyle={true} style={styles}>
+              <Markdown debugPrintTree={false} mergeStyle={true} style={styles}>
                 {content}
               </Markdown>
             </ScrollView>
           </>
         );
       case 2:
+        content = `
+        # Connection Details
+        ---
+        You are connected to the internet via ${this.state.netinfo.type}. ${
+          this.state.netinfo.type === 'wifi'
+            ? '\n\nI cannot access details of WiFi connections without special permissions.'
+            : ''
+        } ${
+          this.state.netinfo.type === 'cellular'
+            ? `You're on a **${this.state.netinfo.details.cellularGeneration ||
+                'UNKNOWN'}** connection to the carrier **"${
+                this.state.netinfo.details.carrier
+              }"** with network operator code (**${
+                this.state.networkOperator
+              }**).\n\nIt is marked as an **"${
+                this.state.netinfo.details.isConnectionExpensive
+                  ? 'expensive'
+                  : 'inexpensive'
+              }"** connection.\n\nYour cellular connection reveals you are currently located in **${this.state.isoCountryCode.toUpperCase()}**.\n\nYour phone reports that you are currently ${
+                this.state.isRoaming ? 'roaming' : 'not roaming'
+              }.`
+            : ''
+        }
+
+        # Network Details
+        ---
+        Your local IP is **\`${this.state.localIP}\`** and public IP is **\`${
+          this.state.publicIP
+        }\`**.
+
+        The IP of your gateway (your router probably) is **\`${
+          this.state.gatewayIP
+        }\`**.
+
+        Your device's WiFi network card has the MAC address of **\`${DeviceInfo.getMacAddressSync()}\`**.
+
+        # Chip Information
+        ---
+        Using the internet, I discovered that your WiFi card was built by **\`${
+          this.state.wifiMan
+        }\`**.
+
+        # Ad Blocking
+        ---
+        I detect that you ${
+          this.state.adsBlocked ? 'are blocking ads.' : 'are not blocking ads.'
+        }
+
+        # Router Access
+        ---
+        I tried to access your router's web interface in the background. It ${
+          this.state.routerWeb === 'UNKNOWN' ||
+          this.state.routerWeb === undefined
+            ? 'did not respond.'
+            : `responded with an HTTP status code of **\`${
+                this.state.routerWeb
+              }\`**.`
+        }
+
+        I could have logged in the background and changed some crucial settings.
+
+        # IP Information
+        ---
+        Using your IP, I found out that you are probably located in **${
+          this.state.ipInfo.city
+        }, ${this.state.ipInfo.country}**.
+
+        Your ISP is **${this.state.ipInfo.isp}**.
+
+        You ${
+          this.state.ipInfo.proxy ? 'are' : 'are not'
+        } using Tor or a public proxy.
+
+        I can detect that your connection is ${
+          this.state.vpnActive ? '' : 'not '
+        }going through a VPN.
+
+        # Network Scan
+        ---
+        I can scan for any device on your local network.
+
+        ${
+          this.state.chromecasts.length > 0
+            ? `For example, I have detected the following Chromecasts:
+            ${this.state.chromecasts
+              .map(item => {
+                return '- ' + item + '\n';
+              })
+              .join(' ')}`
+            : 'I tried to scan for Chromecasts but found none on your network.'
+        }
+        `
+          .split(/\r?\n/)
+          .map(row =>
+            row
+              .trim()
+              .split(/\s+/)
+              .join(' '),
+          )
+          .join('\n');
         return (
-          <ScrollView
-            bounces={false}
-            contentContainerStyle={styles.contentView}
-            key={this.state.chapter}>
+          <>
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               style={[material.display2, styles.titleStyle]}>
               Network Information
             </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              style={[human.title2, styles.bodyStyle]}>
-              You are currently connected to the internet via{' '}
-              {this.state.netinfo.type}.{' '}
-              {this.state.netinfo.type === 'wifi'
-                ? 'I cannot access details of WiFi connections without special permissions.'
-                : ''}{' '}
-              {this.state.netinfo.type === 'cellular'
-                ? `You're on a ${
-                    this.state.netinfo.details.cellularGeneration
-                  } connection to the carrier "${
-                    this.state.netinfo.details.carrier
-                  }" with network operator code (${
-                    this.state.networkOperator
-                  }). It is marked as an "${
-                    this.state.netinfo.details.isConnectionExpensive
-                      ? 'expensive'
-                      : 'inexpensive'
-                  }" connection. Your cellular connection reveals you are currently located in ${this.state.isoCountryCode.toUpperCase()}.`
-                : ''}
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={2000}
-              style={[human.title2, styles.bodyStyle]}>
-              You have a local IP address of {this.state.localIP} and a public
-              IP of {this.state.publicIP}. The IP of your gateway (your router
-              probably) is {this.state.gatewayIP}. Your device's WiFi chip has
-              the MAC address of {DeviceInfo.getMacAddressSync()}.
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={4000}
-              style={[human.title2, styles.bodyStyle]}>
-              Using the internet, I can tell that your device's WiFi chip was
-              manufactured by {this.state.wifiMan}. I can also tell that you{' '}
-              {this.state.adsBlocked
-                ? 'have ad-blocking enabled.'
-                : 'do not have ad-blocking.'}
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={6000}
-              style={[human.title2, styles.bodyStyle]}>
-              I tried to access your router's web interface in the background.
-              It{' '}
-              {this.state.routerWeb === 'UNKNOWN'
-                ? 'did not respond.'
-                : `responded with an HTTP status code of ${
-                    this.state.routerWeb
-                  }.`}{' '}
-              I could have logged in the background and changed some crucial
-              settings.
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={8000}
-              style={[human.title2, styles.bodyStyle]}>
-              Using your IP, I found out that you are probably located in{' '}
-              {this.state.ipInfo.city}, {this.state.ipInfo.country}. Your ISP is{' '}
-              {this.state.ipInfo.isp}. You{' '}
-              {this.state.ipInfo.proxy ? 'are' : 'are not'} using Tor or a
-              public proxy. I can detect that your connection is{' '}
-              {this.state.vpnActive ? '' : 'not '}going through a VPN.
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={10000}
-              style={[human.title2, styles.bodyStyle]}>
-              I can scan the network for devices. For example, I found{' '}
-              {this.state.chromecasts.length > 0
-                ? `${
-                    this.state.chromecasts.length
-                  } Chromecasts called: ${this.state.chromecasts.join(', ')}.`
-                : 'no Chromecasts on your network.'}
-            </Animatable.Text>
-          </ScrollView>
+            <ScrollView
+              bounces={false}
+              contentContainerStyle={styles.markdownContentView}
+              key={this.state.chapter}>
+              <Markdown
+                rules={rules}
+                debugPrintTree={false}
+                mergeStyle={true}
+                style={styles}>
+                {content}
+              </Markdown>
+            </ScrollView>
+          </>
         );
       case 3:
+        content = `
+        # Battery Information
+        ---
+        The battery is currently ${
+          DeviceInfo.getPowerStateSync().batteryState
+        } at **${(DeviceInfo.getPowerStateSync().batteryLevel * 100).toFixed(
+          1,
+        )}%** and ${
+          DeviceInfo.getPowerStateSync().lowPowerMode ? 'is' : 'is not'
+        } in low power mode.
+
+        # Storage Information
+        ---
+        You have used **${this.humanFileSize(
+          this.state.spaceInfo.totalSpace - this.state.spaceInfo.freeSpace,
+          1,
+        )}** of storage space out of your total ${this.humanFileSize(
+          this.state.spaceInfo.totalSpace,
+          1,
+        )} (**${(
+          ((this.state.spaceInfo.totalSpace - this.state.spaceInfo.freeSpace) /
+            this.state.spaceInfo.totalSpace) *
+          100
+        ).toFixed(2)}%** usage).
+
+        # Memory Information
+        ---
+        This app is using **${this.humanFileSize(
+          DeviceInfo.getUsedMemorySync(),
+          1,
+        )}** of RAM out of your total available ${this.humanFileSize(
+          DeviceInfo.getTotalMemorySync(),
+          1,
+        )} (**${(
+          (DeviceInfo.getUsedMemorySync() / DeviceInfo.getTotalMemorySync()) *
+          100
+        ).toFixed(2)}%** usage).
+
+        # Display Information
+        ---
+        I can detect that you have global dark mode ${
+          Appearance.getColorScheme() === 'dark' ? 'enabled' : 'disabled'
+        } on this device.
+
+        The virtual screen resolution is **${parseInt(
+          Dimensions.get('window').height,
+        )} x ${parseInt(Dimensions.get('window').width)}**.
+
+        Your screen's brightness level is at **${(
+          this.state.brightnessLevel * 100
+        ).toFixed(1)}%**.
+
+        Your screen is set to automatically turn off in ${
+          this.state.screenTimeout
+        } seconds.
+
+        # Installed Apps
+        ---
+        You have **${
+          this.state.numApps
+        }** applications installed on your device.
+
+        Out of those apps, I can find apps within certain categories.
+
+        For example, here are all the browsers installed on this device: \n${
+          this.state.browserApps.length > 0
+            ? this.state.browserApps
+                .map(item => {
+                  return '- ' + item + '\n';
+                })
+                .join(' ')
+            : 'None'
+        }
+
+        I can also detect if certain apps are installed by name. Here are a list of apps I detected:
+        | App Name | Is Installed? |
+        | -------- | ------------- |
+        ${this.state.appsInstalled
+          .map(item => {
+            return `| ${item.name} | ${item.result ? '✅' : '❌'} |\n`;
+          })
+          .join(' ')}
+
+        # Clipboard Information
+        ---
+        I can grab whatever you have in your clipboard (what you recently copied).
+
+        You have **"${this.state.clipboard}"** inside your clipboard right now.
+
+        # Runtime Information
+        ---
+        I can detect that this device is ${
+          JailMonkey.isJailBroken() ? '' : 'not '
+        }rooted/jailbroken.
+
+        Your device is ${
+          JailMonkey.canMockLocation() ? 'capable' : 'not currently capable'
+        } of faking its location.
+
+        You have accessibility settings ${
+          this.state.isAccessibilityEnabled ? 'enabled' : 'disabled'
+        }.
+
+        This app is running on ${
+          JailMonkey.isOnExternalStorage()
+            ? 'the external storage'
+            : 'the internal storage (not SD card)'
+        }.
+
+        Android reports that there ${
+          JailMonkey.hookDetected()
+            ? 'are some malicious apps installed'
+            : 'are no malicious apps installed'
+        }.
+
+        I know that your device has been restarted ${
+          this.state.bootCount
+        } times.
+
+        I detect that you have android USB debugging is ${
+          this.state.ADBEnabled ? 'enabled' : 'disabled'
+        }.
+
+        You also have developer settings ${
+          this.state.devSettings ? 'enabled' : 'disabled'
+        }.
+
+        Lastly, this app ${
+          JailMonkey.isDebuggedMode() ? 'is' : 'is not'
+        } running in debug mode.
+
+        # OS Information
+        ---
+        You are running Android with linux kernel version **\`${this.state.kernelVer.trim()}\`**.
+
+        The phone has been **${this.state.uptime.trim()}**.
+
+        # Bluetooth Information
+        ---
+        I can detect that you have Bluetooth ${
+          this.state.isBluetoothEnabled ? 'enabled' : 'disabled'
+        }.
+
+        The name other bluetooth devices see when scanning for your phone is ${
+          this.state.bluetoothName
+        }.
+
+        I can get a list of all paired bluetooth devices (You have ${
+          this.state.pairedDevices.length
+        }): \n${
+          this.state.pairedDevices.length > 0
+            ? this.state.pairedDevices
+                .map(item => {
+                  return (
+                    '- ' +
+                    item.split('[]')[0] +
+                    ` **\`[${item.split('[]')[1]}]\`**` +
+                    '\n'
+                  );
+                })
+                .join(' ')
+            : 'None'
+        }
+        `
+          .split(/\r?\n/)
+          .map(row =>
+            row
+              .trim()
+              .split(/\s+/)
+              .join(' '),
+          )
+          .join('\n');
         return (
-          <ScrollView
-            bounces={false}
-            contentContainerStyle={styles.contentView}
-            key={this.state.chapter}>
+          <>
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               style={[material.display2, styles.titleStyle]}>
               System Information
             </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              style={[human.title2, styles.bodyStyle]}>
-              The battery is currently{' '}
-              {DeviceInfo.getPowerStateSync().batteryState} at{' '}
-              {(DeviceInfo.getPowerStateSync().batteryLevel * 100).toFixed(1)}%
-              and{' '}
-              {DeviceInfo.getPowerStateSync().lowPowerMode ? 'is' : 'is not'} in
-              low power mode.
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={2000}
-              style={[human.title2, styles.bodyStyle]}>
-              You have used{' '}
-              {this.humanFileSize(
-                this.state.spaceInfo.totalSpace -
-                  this.state.spaceInfo.freeSpace,
-                1,
-              )}{' '}
-              of storage space out of your total{' '}
-              {this.humanFileSize(this.state.spaceInfo.totalSpace, 1)} (
-              {(
-                ((this.state.spaceInfo.totalSpace -
-                  this.state.spaceInfo.freeSpace) /
-                  this.state.spaceInfo.totalSpace) *
-                100
-              ).toFixed(2)}
-              % usage).
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={4000}
-              style={[human.title2, styles.bodyStyle]}>
-              This app is using{' '}
-              {this.humanFileSize(DeviceInfo.getUsedMemorySync(), 1)} of RAM out
-              of your total available{' '}
-              {this.humanFileSize(DeviceInfo.getTotalMemorySync(), 1)} (
-              {(
-                (DeviceInfo.getUsedMemorySync() /
-                  DeviceInfo.getTotalMemorySync()) *
-                100
-              ).toFixed(2)}
-              % usage).
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={6000}
-              style={[human.title2, styles.bodyStyle]}>
-              I can detect that you have global dark mode{' '}
-              {Appearance.getColorScheme() === 'dark' ? 'enabled' : 'disabled'}{' '}
-              on this device. The virtual screen resolution is{' '}
-              {parseInt(Dimensions.get('window').height)} x{' '}
-              {parseInt(Dimensions.get('window').width)}. You are currently{' '}
-              {this.state.isListeningToMusic ? 'are' : 'are not'} listening to
-              music.
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={8000}
-              style={[human.title2, styles.bodyStyle]}>
-              You have {this.state.numApps} applications installed on your
-              device. Out of those apps, I can find apps within certain
-              categories. For example, here are all the browsers installed on
-              this device:{' '}
-              {this.state.browserApps.length > 0
-                ? this.state.browserApps.join(', ')
-                : 'None'}
-              .
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={10000}
-              style={[human.title2, styles.bodyStyle]}>
-              I can additionally check if certain apps are installed. For
-              example, I can tell that you have installed:{' '}
-              {this.state.appsInstalled.join(', ')}.
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={12000}
-              style={[human.title2, styles.bodyStyle]}>
-              You are running Android with linux kernel version{' '}
-              {this.state.kernelVer.trim()}. The phone has been{' '}
-              {this.state.uptime.trim()}.
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={14000}
-              style={[human.title2, styles.bodyStyle]}>
-              I can grab whatever you have in your clipboard (what you recently
-              copied). You have "{this.state.clipboard}" inside your clipboard
-              right now.
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={16000}
-              style={[human.title2, styles.bodyStyle]}>
-              I can detect that this device is{' '}
-              {JailMonkey.isJailBroken() ? '' : 'not '}rooted/jailbroken. Your
-              device is{' '}
-              {JailMonkey.canMockLocation()
-                ? 'capable'
-                : 'not currently capable'}{' '}
-              of faking its location. This app is running on{' '}
-              {JailMonkey.isOnExternalStorage()
-                ? 'the external storage'
-                : 'the internal storage (not SD card)'}
-              . Android reports that there{' '}
-              {JailMonkey.hookDetected()
-                ? 'are some malicious apps installed'
-                : 'are no malicious apps installed'}
-              . Lastly, this app {JailMonkey.isDebuggedMode() ? 'is' : 'is not'}{' '}
-              running in debug mode.
-            </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              delay={18000}
-              style={[human.title2, styles.bodyStyle]}>
-              I can detect that you have WiFi{' '}
-              {this.state.isWifiEnabled ? 'enabled' : 'disabled'}. I can also
-              detect that you have Bluetooth{' '}
-              {this.state.isBluetoothEnabled ? 'enabled' : 'disabled'}. Your
-              volume is at {(this.state.volumeLevel * 100).toFixed(1)}% and your
-              brightness is at {(this.state.brightnessLevel * 100).toFixed(1)}%.
-            </Animatable.Text>
-          </ScrollView>
+            <ScrollView
+              bounces={false}
+              contentContainerStyle={styles.markdownContentView}
+              key={this.state.chapter}>
+              <Markdown
+                rules={rules}
+                debugPrintTree={false}
+                mergeStyle={true}
+                style={styles}>
+                {content}
+              </Markdown>
+            </ScrollView>
+          </>
         );
       case 4:
         return (
@@ -702,6 +817,24 @@ export default class NoPermissions extends Component {
   }
 }
 
+const rules = {
+  paragraph: (node, children, parent, styles) => {
+    if (parent[0].type === 'list_item') {
+      return (
+        <View key={node.key} style={styles._VIEW_SAFE_paragraph_list}>
+          {children}
+        </View>
+      );
+    }
+
+    return (
+      <View key={node.key} style={styles._VIEW_SAFE_paragraph}>
+        {children}
+      </View>
+    );
+  },
+};
+
 const styles = StyleSheet.create({
   backgroundView: {
     flex: 1,
@@ -716,13 +849,14 @@ const styles = StyleSheet.create({
   },
   markdownContentView: {
     flexGrow: 1,
-    // alignItems: 'center',
+    alignItems: 'center',
     padding: 20,
   },
   titleStyle: {
     color: '#eee',
     fontFamily: 'monospace',
     textAlign: 'center',
+    paddingBottom: 10,
   },
   bodyStyle: {
     flexGrow: 1,
@@ -733,22 +867,19 @@ const styles = StyleSheet.create({
   },
   body: {
     ...human.title3,
-    flex: 1,
     color: '#eee',
     fontFamily: 'ProximaNova',
+    flex: 1,
+    flexShrink: 1,
   },
   hr: {
     backgroundColor: '#999',
     marginTop: 5,
     height: 1,
   },
-  list_item: {
-    marginTop: 0,
-    marginBottom: 0,
-    ...human.body,
-  },
   bullet_list_icon: {
     color: '#eee',
+    lineHeight: 20,
   },
   paragraph: {
     color: '#eee',
@@ -758,6 +889,21 @@ const styles = StyleSheet.create({
   heading1: {
     ...human.title2,
     color: '#eee',
-    fontFamily: 'ProximaNova-Light',
+    fontFamily: 'ProximaNova-Bold',
+  },
+  code_inline: {
+    backgroundColor: '#324A5F',
+    borderColor: '#fff',
+    color: '#eee',
+    fontFamily: 'monospace',
+    borderWidth: 0,
+  },
+  paragraph_list: {
+    marginTop: 2,
+    marginBottom: 2,
+    paddingBottom: 10,
+  },
+  table: {
+    marginBottom: 20,
   },
 });
