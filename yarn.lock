@@ -5385,6 +5385,10 @@ react-native-ratings@^6.5.0:
     lodash "^4.17.4"
     prop-types "^15.5.10"
 
+"react-native-sensor-manager@https://github.com/Mealime/react-native-sensor-manager.git":
+  version "0.1.10"
+  resolved "https://github.com/Mealime/react-native-sensor-manager.git#ccb06a6c82c0635f6a62d07aac8fb1e9ed7c97e2"
+
 react-native-splash-screen@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/react-native-splash-screen/-/react-native-splash-screen-3.2.0.tgz#d47ec8557b1ba988ee3ea98d01463081b60fff45"

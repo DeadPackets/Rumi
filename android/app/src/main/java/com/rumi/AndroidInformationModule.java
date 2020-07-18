@@ -236,11 +236,11 @@ public class AndroidInformationModule extends ReactContextBaseJavaModule {
 	@ReactMethod
 	public void getSensors(Promise promise) {
 		try {
-			SensorManager sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+			SensorManager sm = (SensorManager) getReactApplicationContext().getSystemService(Context.SENSOR_SERVICE);
 			List<Sensor> sensors = sm.getSensorList(Sensor.TYPE_ALL);
 			WritableArray resultSet = Arguments.createArray();
 			for(Sensor s : sensors) {
-				resultSet.pushString(s.getName() + '[]' + s.getVendor();
+				resultSet.pushString(s.getName() + "[]" + s.getVendor());
 			}
 			promise.resolve(resultSet);
 		} catch (Exception e) {

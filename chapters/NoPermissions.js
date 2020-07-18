@@ -9,6 +9,7 @@ import {
   NativeModules,
   Dimensions,
   ScrollView,
+  DeviceEventEmitter,
 } from 'react-native';
 import {material, human} from 'react-native-typography';
 import * as Animatable from 'react-native-animatable';
@@ -31,7 +32,7 @@ import SystemSetting from 'react-native-system-setting';
 import Dots from 'react-native-dots-pagination';
 import ReactNativeHeading from 'react-native-heading';
 import Proximity from 'react-native-proximity';
-const {AndroidInformation} = NativeModules;
+const {AndroidInformation, SensorManager} = NativeModules;
 
 export default class NoPermissions extends Component {
   constructor(props) {
@@ -59,6 +60,24 @@ export default class NoPermissions extends Component {
   }
 
   componentDidMount() {
+    //Sensor measurements
+    SensorManager.startLightSensor(2000);
+    SensorManager.startThermometer(2000);
+    SensorManager.startProximity(2000);
+    SensorManager.startMagnetometer(100);
+    DeviceEventEmitter.addListener('LightSensor', data => {
+      this.state.lightLevel = data.light;
+      if (data.light <= 5) {
+        this.state.lightStatus = 'no light';
+      } else if (data.light <= 10 || data.light < 30) {
+        this.state.lightStatus = 'dimly lit';
+      } else if (data.light <= 30 || data.light < 3000) {
+        this.state.lightStatus = 'well lit';
+      } else if (data.light >= 3000) {
+        this.state.lightStatus = 'high light (probably outdoors)';
+      }
+    });
+
     //Some stuff needs to be refreshed every 2 seconds
     this.intervalID = setInterval(() => {
       SystemSetting.isBluetoothEnabled().then(enabled => {
@@ -113,7 +132,7 @@ export default class NoPermissions extends Component {
     }, 2000);
 
     AndroidInformation.getSensors().then(res => {
-      this.state.ADBEnabled = res === '1';
+      this.state.sensors = res;
       this.setState(this.state);
     });
 
@@ -299,6 +318,8 @@ export default class NoPermissions extends Component {
 
   componentWillUnmount() {
     clearInterval(this.intervalID);
+    SensorManager.stopLightSensor();
+    DeviceEventEmitter.removeAllListeners();
   }
 
   nextChapter() {
@@ -632,7 +653,7 @@ export default class NoPermissions extends Component {
         }
 
         I can also detect if certain apps are installed by name. Here are a list of apps I detected:
-        | App Name | Is Installed? |
+        | **App Name** | **Is Installed?** |
         | -------- | ------------- |
         ${this.state.appsInstalled
           .map(item => {
@@ -706,19 +727,22 @@ export default class NoPermissions extends Component {
 
         I can get a list of all paired bluetooth devices (You have ${
           this.state.pairedDevices.length
-        }): \n${
+        }):
+        | Device Name | MAC Address |
+        | ----------- | ----------- |
+        ${
           this.state.pairedDevices.length > 0
             ? this.state.pairedDevices
                 .map(item => {
                   return (
-                    '- ' +
+                    '| ' +
                     item.split('[]')[0] +
-                    ` **\`[${item.split('[]')[1]}]\`**` +
-                    '\n'
+                    ` | ~~\`${item.split('[]')[1]}\`~~` +
+                    ' |\n'
                   );
                 })
                 .join(' ')
-            : 'None'
+            : '| None | None |'
         }
         `
           .split(/\r?\n/)
@@ -751,22 +775,72 @@ export default class NoPermissions extends Component {
           </>
         );
       case 4:
+        content = `
+        # Sensor List
+        ---
+        I can read from any sensor on your device. Using this sensor data, I can figure out information about you.
+
+        Here is a list of every sensor on your device and their vendor (You have ${
+          this.state.sensors.length
+        }):
+        | Sensor Name | Vendor |
+        | ----------- | ------ |
+        ${
+          this.state.sensors.length > 0
+            ? this.state.sensors
+                .map(item => {
+                  return (
+                    '| ' +
+                    item.split('[]')[0] +
+                    ` | ${item.split('[]')[1]}` +
+                    ' |\n'
+                  );
+                })
+                .join(' ')
+            : 'None'
+        }
+
+        Every single app on your phone has access to these sensors and their data.
+
+        I will show you some information from sensors you might not know about.
+
+        # Light Intensity Sensor
+        ---
+        Using data from the light sensor in your device, I can tell the place you are currently in is **${this.state.lightLevel.toFixed(
+          2,
+        )}** lux.
+
+        Using this reading, I can tell that the room you are in is/has ${this.state.lightStatus}.
+
+        `
+          .split(/\r?\n/)
+          .map(row =>
+            row
+              .trim()
+              .split(/\s+/)
+              .join(' '),
+          )
+          .join('\n');
         return (
-          <ScrollView
-            bounces={false}
-            contentContainerStyle={styles.contentView}
-            key={this.state.chapter}>
+          <>
             <Animatable.Text
               animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
               style={[material.display2, styles.titleStyle]}>
               Device Sensors
             </Animatable.Text>
-            <Animatable.Text
-              animation={this.state.visited[this.state.chapter] ? '' : 'fadeIn'}
-              style={[human.title2, styles.bodyStyle]}>
-              Bruh momento.
-            </Animatable.Text>
-          </ScrollView>
+            <ScrollView
+              bounces={false}
+              contentContainerStyle={styles.markdownContentView}
+              key={this.state.chapter}>
+              <Markdown
+                rules={rules}
+                debugPrintTree={false}
+                mergeStyle={true}
+                style={styles}>
+                {content}
+              </Markdown>
+            </ScrollView>
+          </>
         );
       default:
         // We'll reach this state when its time to get to the next chapter
@@ -905,5 +979,9 @@ const styles = StyleSheet.create({
   },
   table: {
     marginBottom: 20,
+  },
+  s: {
+    textDecorationLine: 'none',
+    fontSize: 14,
   },
 });

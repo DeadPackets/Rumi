@@ -26,6 +26,7 @@
     "react-native-markdown-display": "^6.1.4",
     "react-native-network-info": "^5.2.1",
     "react-native-proximity": "^3.0.0",
+    "react-native-sensor-manager": "https://github.com/Mealime/react-native-sensor-manager.git",
     "react-native-splash-screen": "^3.2.0",
     "react-native-system-setting": "^1.7.4",
     "react-native-typography": "^1.4.1",
