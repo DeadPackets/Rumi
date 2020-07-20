@@ -1,3 +1,6 @@
+# Signing config
+keystore.properties
+
 # OSX
 #
 .DS_Store
