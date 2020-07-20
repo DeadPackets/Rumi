@@ -6,7 +6,6 @@ import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.sensormanager.SensorManagerPackage;
 import com.joshblour.reactnativeheading.ReactNativeHeadingPackage;
-import com.RNProximity.RNProximityPackage;
 import com.ninty.system.setting.SystemSettingPackage;
 import com.reactnativecommunity.clipboard.ClipboardPackage;
 import com.gantix.JailMonkey.JailMonkeyPackage;

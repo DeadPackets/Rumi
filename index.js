@@ -2,7 +2,7 @@ import {AppRegistry} from 'react-native';
 import React, {Component} from 'react';
 import {name as appName} from './app.json';
 import NetInfo from '@react-native-community/netinfo';
-
+import SplashScreen from 'react-native-splash-screen';
 //The No Internet component
 import NoInternet from './chapters/NoInternet';
 
@@ -24,6 +24,9 @@ class Main extends Component {
       this.state.hasInternetConnection = state.isInternetReachable;
       this.setState(this.state);
     });
+
+    //Hide the splashscreen
+    SplashScreen.hide();
   }
 
   advanceState() {

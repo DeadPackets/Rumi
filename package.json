@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-native-community/clipboard": "^1.2.2",
     "@react-native-community/netinfo": "^5.9.2",
+    "@react-native-community/toolbar-android": "0.1.0-rc.2",
     "jail-monkey": "^2.3.2",
     "react": "16.11.0",
     "react-native": "0.62.2",
@@ -25,7 +26,7 @@
     "react-native-heading": "^1.1.1",
     "react-native-markdown-display": "^6.1.4",
     "react-native-network-info": "^5.2.1",
-    "react-native-proximity": "^3.0.0",
+    "react-native-push-notification": "^4.0.0",
     "react-native-sensor-manager": "https://github.com/Mealime/react-native-sensor-manager.git",
     "react-native-splash-screen": "^3.2.0",
     "react-native-system-setting": "^1.7.4",
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@babel/core": "^7.6.2",
     "@babel/runtime": "^7.6.2",
+    "@bam.tech/react-native-make": "^3.0.0",
     "@react-native-community/eslint-config": "^0.0.5",
     "babel-jest": "^24.9.0",
     "eslint": "^6.5.1",

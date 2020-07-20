@@ -24,8 +24,11 @@ export default class Intro extends Component {
             </Text>
             <Text
               style={[material.title, robotoWeights.light, styles.bodyStyle]}>
-              This app needs an internet connection to work. Please connect to
-              the internet then try open the app again.
+              This app needs an internet connection to work.
+            </Text>
+            <Text
+              style={[material.title, robotoWeights.light, styles.bodyStyle]}>
+              Please connect to the internet then try open the app again.
             </Text>
           </Animatable.View>
         </SafeAreaView>

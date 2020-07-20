@@ -989,6 +989,13 @@
   resolved "https://registry.yarnpkg.com/@react-native-community/netinfo/-/netinfo-5.9.2.tgz#0e9df9717f292cd54fa9de322205b6263a1cb8e2"
   integrity sha512-YPN6Qi9Sf64GlE3muLi4u4p4LaFP/65PTS0xssiGEaBAwSmZoUhzihhW1AptNe66ZQK9PxXfKIJDiLnYveK1aw==
 
+"@react-native-community/push-notification-ios@^1.2.2":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@react-native-community/push-notification-ios/-/push-notification-ios-1.3.0.tgz#349095f5dda42f59501316c7ef7896adb8c2a1db"
+  integrity sha512-fXLtDYsDv8CZIF/1pnrLyKv68X1VVgsWQTVdxA4UeYPAGP9OU4XdShD1TsPFWIF5VgabNrnmKl1uEDLw3X+6jA==
+  dependencies:
+    invariant "^2.2.4"
+
 "@textlint/ast-node-types@^4.0.3":
   version "4.2.5"
   resolved "https://registry.yarnpkg.com/@textlint/ast-node-types/-/ast-node-types-4.2.5.tgz#ae13981bc8711c98313a6ac1c361194d6bf2d39b"
@@ -5372,10 +5379,12 @@ react-native-network-info@^5.2.1:
   resolved "https://registry.yarnpkg.com/react-native-network-info/-/react-native-network-info-5.2.1.tgz#b701f10d4ed1aeadcfe77b197328d1ae846f6d3a"
   integrity sha512-iam74xXtrSqqZurCl1/bSjZ9jXcsJY84g7brx1/4uVGCY26c6m+4CArHNSHOsz5ATg2NQT+81sjNy0KlCPyK4g==
 
-react-native-proximity@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/react-native-proximity/-/react-native-proximity-3.0.0.tgz#17152570121467b70070f00b1e6b62ca2cbbc75c"
-  integrity sha512-OnFXxCAcA6veF9jd5i5J3v1RR/IwBnX0DHMfFWmdltqlwDOQQi0dgKwZMyB0FkAeGHdYo7UESzEzmxkJpeqhdQ==
+react-native-push-notification@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-push-notification/-/react-native-push-notification-4.0.0.tgz#85c795abef6ddbdbed039ca6a5ffcedc0f36d0dd"
+  integrity sha512-PwFxGupwlAKc8qz8nMhX9U+/En/kiEH/1cyuKvUQdMa+tx96xZ/t81RTyOkkehkx4lbsI+Tv2F+D+fJV9IQb+A==
+  dependencies:
+    "@react-native-community/push-notification-ios" "^1.2.2"
 
 react-native-ratings@^6.5.0:
   version "6.5.0"

@@ -1,5 +1,8 @@
 import React, {Component} from 'react';
 import {
+  BackHandler,
+  ToastAndroid,
+  AppState,
   SafeAreaView,
   Text,
   StatusBar,
@@ -13,8 +16,11 @@ import {
 } from 'react-native';
 import {material, human} from 'react-native-typography';
 import * as Animatable from 'react-native-animatable';
-import {Button, Divider} from 'react-native-elements';
+import {Button} from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
+
+//Notifications
+import PushNotification from 'react-native-push-notification';
 
 //Libraries to get info
 import {AppInstalledChecker} from 'react-native-check-app-install';
@@ -31,7 +37,6 @@ import Clipboard from '@react-native-community/clipboard';
 import SystemSetting from 'react-native-system-setting';
 import Dots from 'react-native-dots-pagination';
 import ReactNativeHeading from 'react-native-heading';
-import Proximity from 'react-native-proximity';
 const {AndroidInformation, SensorManager} = NativeModules;
 
 export default class NoPermissions extends Component {
@@ -60,11 +65,35 @@ export default class NoPermissions extends Component {
   }
 
   componentDidMount() {
+    //AppState listener
+    AppState.addEventListener('change', nextState => {
+      if (this.state.chapter === 3) {
+        this.displayNotif(
+          `The app is now ${
+            nextState === 'active' ? 'active!' : 'in the background!'
+          }`,
+        );
+      }
+    });
+
+    //Back button handler
+    BackHandler.addEventListener('hardwareBackPress', () => {
+      if (this.state.chapter === 3) {
+        this.displayToast('You pressed the back button!');
+      }
+    });
+
     //Sensor measurements
     SensorManager.startLightSensor(2000);
     SensorManager.startThermometer(2000);
     SensorManager.startProximity(2000);
-    SensorManager.startMagnetometer(100);
+    SensorManager.startStepCounter(1000);
+    ReactNativeHeading.start(1).then(didStart => {
+      this.setState({
+        headingIsSupported: didStart,
+      });
+    });
+
     DeviceEventEmitter.addListener('LightSensor', data => {
       this.state.lightLevel = data.light;
       if (data.light <= 5) {
@@ -78,8 +107,28 @@ export default class NoPermissions extends Component {
       }
     });
 
+    DeviceEventEmitter.addListener('Thermometer', data => {
+      this.state.temp = data.temp;
+    });
+
+    DeviceEventEmitter.addListener('Proximity', data => {
+      this.state.proximityVal = data.value;
+      this.state.proximityMax = data.maxRange;
+      this.state.proximityIsNear = data.isNear;
+    });
+
+    DeviceEventEmitter.addListener('StepCounter', data => {
+      this.state.stepCount = data.steps;
+    });
+
+    DeviceEventEmitter.addListener('headingUpdated', data => {
+      this.state.heading = data;
+    });
+
     //Some stuff needs to be refreshed every 2 seconds
     this.intervalID = setInterval(() => {
+      this.state.usedMemory = DeviceInfo.getUsedMemorySync();
+
       SystemSetting.isBluetoothEnabled().then(enabled => {
         this.state.isBluetoothEnabled = enabled ? 'On' : 'Off';
       });
@@ -319,7 +368,23 @@ export default class NoPermissions extends Component {
   componentWillUnmount() {
     clearInterval(this.intervalID);
     SensorManager.stopLightSensor();
+    SensorManager.stopProximity();
+    SensorManager.stopThermometer();
+    SensorManager.stopStepCounter();
+    ReactNativeHeading.stop();
     DeviceEventEmitter.removeAllListeners();
+    BackHandler.removeEventListener('hardwareBackPress');
+    AppState.removeEventListener('change');
+  }
+
+  displayToast(msg) {
+    ToastAndroid.show(msg, ToastAndroid.BOTTOM, ToastAndroid.LONG);
+  }
+
+  displayNotif(message) {
+    PushNotification.localNotification({
+      message,
+    });
   }
 
   nextChapter() {
@@ -606,13 +671,13 @@ export default class NoPermissions extends Component {
         # Memory Information
         ---
         This app is using **${this.humanFileSize(
-          DeviceInfo.getUsedMemorySync(),
+          this.state.usedMemory,
           1,
         )}** of RAM out of your total available ${this.humanFileSize(
           DeviceInfo.getTotalMemorySync(),
           1,
         )} (**${(
-          (DeviceInfo.getUsedMemorySync() / DeviceInfo.getTotalMemorySync()) *
+          (this.state.usedMemory / DeviceInfo.getTotalMemorySync()) *
           100
         ).toFixed(2)}%** usage).
 
@@ -666,6 +731,22 @@ export default class NoPermissions extends Component {
         I can grab whatever you have in your clipboard (what you recently copied).
 
         You have **"${this.state.clipboard}"** inside your clipboard right now.
+
+        # Back Button Detection
+        ---
+        If you have a hardware or software back button, I can detect when you press it.
+
+        Try pressing the back button and you should get a notification.
+
+        This will only happen on this page.
+
+        # App Exit Detection
+        ---
+        I can detect when the app is in the background or back into active view.
+
+        Try going back to your home menu and see what happens. Then come back to the app.
+
+        This will only happen on this page.
 
         # Runtime Information
         ---
@@ -810,8 +891,51 @@ export default class NoPermissions extends Component {
           2,
         )}** lux.
 
-        Using this reading, I can tell that the room you are in is/has ${this.state.lightStatus}.
+        Using this reading, I can tell that the room you are in is/has ${
+          this.state.lightStatus
+        }.
 
+        # Temperature Sensor
+        ---
+        ${
+          this.state.temp
+            ? `Using data from the temperature sensor in your device, I can tell that the temperature around you is around **${this.state.temp.toFixed(
+                2,
+              )}°C**.`
+            : 'Your phone does not have a temperature sensor.'
+        }
+
+        # Proximity Sensor
+        ---
+        Using data from the proximity sensor in your device, I can tell that you are about **${this.state.proximityVal.toFixed(
+          2,
+        )}** cm away from your phone.
+
+        However, I know that the maximum value this sensor can read is **${this.state.proximityMax.toFixed(
+          2,
+        )}** cm.
+
+        Your device reports that you ${
+          this.state.proximityIsNear ? 'are' : 'are not'
+        } near to it.
+
+        # Step Counter Sensor
+        ---
+        Your phone can also track how many steps you are taking.
+
+        Your phone reports that you have taken **${
+          this.state.stepCount
+        }** steps.
+
+        # Device Heading Sensor
+        ---
+        ${
+          this.state.headingIsSupported
+            ? `I can tell what direction you are facing using the heading sensor on your device. This sensor reports that you are facing **${this.state.heading.toFixed(
+                2,
+              )}°**`
+            : 'Your device does not have a heading sensor.'
+        }
         `
           .split(/\r?\n/)
           .map(row =>
