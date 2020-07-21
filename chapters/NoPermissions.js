@@ -334,12 +334,12 @@ export default class NoPermissions extends Component {
         this.setState(this.state);
       });
 
-    fetch('http://icanhazip.com/s')
+    fetch('https://icanhazip.com/s')
       .then(response => response.text())
       .then(response => {
         this.state.publicIP = response.trim();
         fetch(
-          `http://ip-api.com/json/${
+          `https://ip-api.com/json/${
             this.state.publicIP
           }?fields=status,message,country,city,isp,as,proxy`,
         )
@@ -452,6 +452,8 @@ export default class NoPermissions extends Component {
         # Device Information
         ---
         You are currently using a **${DeviceInfo.getBrand()} ${DeviceInfo.getModel()}** (called **"${DeviceInfo.getDeviceNameSync()}"**) which is running **${DeviceInfo.getSystemName()} ${DeviceInfo.getSystemVersion()}**.
+
+        Your device's unique ID is **\`${DeviceInfo.getUniqueId()}\`**.
 
         # Device Type
         ---
@@ -762,6 +764,8 @@ export default class NoPermissions extends Component {
           this.state.isAccessibilityEnabled ? 'enabled' : 'disabled'
         }.
 
+        Your OS has a build ID of **\`${DeviceInfo.getBuildIdSync()}\`**.
+
         This app is running on ${
           JailMonkey.isOnExternalStorage()
             ? 'the external storage'
@@ -774,9 +778,9 @@ export default class NoPermissions extends Component {
             : 'are no malicious apps installed'
         }.
 
-        I know that your device has been restarted ${
+        I know that your device has been restarted **${
           this.state.bootCount
-        } times.
+        }** times.
 
         I detect that you have android USB debugging is ${
           this.state.ADBEnabled ? 'enabled' : 'disabled'
@@ -824,6 +828,21 @@ export default class NoPermissions extends Component {
                 })
                 .join(' ')
             : '| None | None |'
+        }
+
+        # System Features
+        ---
+        Your device reports it has the following available features:
+        | Feature |
+        | ------- |
+        ${
+          DeviceInfo.getSystemAvailableFeaturesSync().length > 0
+            ? DeviceInfo.getSystemAvailableFeaturesSync()
+                .map(item => {
+                  return `| ~~\`${item}\`~~ |\n`;
+                })
+                .join(' ')
+            : '| None |'
         }
         `
           .split(/\r?\n/)
@@ -1007,6 +1026,8 @@ export default class NoPermissions extends Component {
             icon={{name: 'arrow-forward', color: '#eee', size: 30}}
             buttonStyle={{backgroundColor: '#162B3C'}}
             style={{width: 80}}
+            disabled={this.state.chapter === 4 ? true : false}
+            disabledStyle={{backgroundColor: '#CCC9DC'}}
             onPress={this.goNext.bind(this)}
           />
         </View>
