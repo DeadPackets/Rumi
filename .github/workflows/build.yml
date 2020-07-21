@@ -1,8 +1,6 @@
-name: Build APK and Publish Release
+name: build_apk_and_publish_release
 on:
   push:
-    branches:
-      - master
     tags:
       - 'v*'
 jobs:
@@ -27,7 +25,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
-          body: New version of Rumi
+          body: Rumi ${{ github.ref }} released! Check changelog.md for changes.
           draft: false
           prerelease: false
       - name: Upload Release Asset
