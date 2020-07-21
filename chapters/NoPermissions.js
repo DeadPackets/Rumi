@@ -910,7 +910,7 @@ export default class NoPermissions extends Component {
                   );
                 })
                 .join(' ')
-            : 'None'
+            : '| None | None |'
         }
 
         Every single app on your phone has access to these sensors and their data.
@@ -925,9 +925,8 @@ export default class NoPermissions extends Component {
                 2,
               )}** lux.
 
-              Using this reading, I can tell that the room you are in is/has ${
-                this.state.lightStatus
-              }.`
+              Using this reading, I can tell that the room you are in is/has ${this
+                .state.lightStatus || ' an unknown amount of light.'}.`
             : 'Your device does not have a light sensor.'
         }
 
@@ -963,9 +962,8 @@ export default class NoPermissions extends Component {
         ---
         Your phone can also track how many steps you are taking.
 
-        Your phone reports that you have taken **${
-          this.state.stepCount
-        }** steps.
+        Your phone reports that you have taken **${this.state.stepCount ||
+          0}** steps.
 
         # Device Heading Sensor
         ---

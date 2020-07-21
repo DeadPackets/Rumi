@@ -136,7 +136,8 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 def enableHermes = project.ext.react.get("enableHermes", true);
 
 //Secure Signing
-def pass = getPassword("DeadPackets","android_keystore")
+def isGithubAction = System.getenv('IS_GIT_ACTION')
+def pass = isGithubAction != null ? System.getenv('ANDROID_PASS') : getPassword("DeadPackets","android_keystore")
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
