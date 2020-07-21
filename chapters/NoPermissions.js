@@ -328,17 +328,14 @@ export default class NoPermissions extends Component {
     });
 
     // Fetch OUI of WiFi MAC address
-    fetch(`https://api.macvendors.com/${DeviceInfo.getMacAddressSync()}`)
+    fetch(
+      `https://api.macaddress.io/v1?apiKey=at_Dek1xqeSrDsxefAqRrg6fgR2uD7Gd&output=json&search=${DeviceInfo.getMacAddressSync()}`,
+    )
       .then(response => {
-        return response.text();
+        return response.json();
       })
       .then(response => {
-        try {
-          JSON.parse(response);
-          this.state.wifiMan = 'UNKNOWN';
-        } catch (e) {
-          this.state.wifiMan = response;
-        }
+        this.state.wifiMan = response.vendorDetails.companyName || 'UNKNOWN';
         this.setState(this.state);
       })
       .catch(err => {
