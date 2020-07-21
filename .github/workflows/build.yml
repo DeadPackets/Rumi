@@ -6,13 +6,6 @@ on:
     tags:
       - 'v*'
 jobs:
-  install-and-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install npm dependencies
-        run: |
-          npm install
   build-android-and-publish:
     needs: install-and-test
     runs-on: ubuntu-latest
@@ -26,7 +19,7 @@ jobs:
           ANDROID_PASS: ${{ secrets.ANDROID_PASS }}
           IS_GIT_ACTION: true
         run: |
-          cd android && ./gradlew assembleRelease
+          cd android && ./gradlew app:assembleRelease
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
