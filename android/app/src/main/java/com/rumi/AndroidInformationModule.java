@@ -18,6 +18,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.accounts.*;
 import android.util.Patterns;
+import android.util.DisplayMetrics;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothDevice;
@@ -68,6 +69,16 @@ public class AndroidInformationModule extends ReactContextBaseJavaModule {
 		try {
 			AudioManager manager = (AudioManager) getReactApplicationContext().getSystemService(Context.AUDIO_SERVICE);
 			promise.resolve(manager.isMusicActive());
+		} catch (Exception e) {
+			promise.reject("ERROR", e);
+		}
+	}
+
+	@ReactMethod
+	public void getResolution(Promise promise) {
+		try {
+			DisplayMetrics metrics = (DisplayMetrics) getReactApplicationContext().getResources().getDisplayMetrics();
+			promise.resolve(metrics.heightPixels + " x " + metrics.widthPixels);
 		} catch (Exception e) {
 			promise.reject("ERROR", e);
 		}
@@ -174,6 +185,15 @@ public class AndroidInformationModule extends ReactContextBaseJavaModule {
 			BluetoothManager b = (BluetoothManager) getReactApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
 			BluetoothAdapter adapter = b.getAdapter();
 			promise.resolve(adapter.getName());
+		} catch (Exception e) {
+			promise.reject("ERROR", e);
+		}
+	}
+
+	@ReactMethod
+	public void getBrightness(Promise promise) {
+		try {
+			promise.resolve(Settings.System.getInt(getReactApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS));
 		} catch (Exception e) {
 			promise.reject("ERROR", e);
 		}

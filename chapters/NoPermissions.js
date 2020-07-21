@@ -10,7 +10,6 @@ import {
   StyleSheet,
   Appearance,
   NativeModules,
-  Dimensions,
   ScrollView,
   DeviceEventEmitter,
 } from 'react-native';
@@ -133,8 +132,7 @@ export default class NoPermissions extends Component {
         this.state.isBluetoothEnabled = enabled ? 'On' : 'Off';
       });
 
-      //get the current brightness
-      SystemSetting.getBrightness().then(brightness => {
+      AndroidInformation.getBrightness().then(brightness => {
         this.state.brightnessLevel = brightness;
       });
 
@@ -179,6 +177,10 @@ export default class NoPermissions extends Component {
         this.setState(this.state);
       });
     }, 2000);
+
+    AndroidInformation.getResolution().then(res => {
+      this.state.resolution = res;
+    });
 
     AndroidInformation.getSensors().then(res => {
       this.state.sensors = res;
@@ -246,8 +248,13 @@ export default class NoPermissions extends Component {
       });
 
     AppInstalledChecker.getAppList().forEach(app => {
-      AppInstalledChecker.isAppInstalled(app).then(result => {
-        if (this.state.appsInstalled.indexOf(app) === -1) {
+      //Manual check for spotify since this library has a broken check
+      if (app === 'spotify') {
+        AppInstalledChecker.checkURLScheme('spotify').then(result => {
+          this.state.appsInstalled.push({name: 'Spotify', result});
+        });
+      } else {
+        AppInstalledChecker.isAppInstalled(app).then(result => {
           this.state.appsInstalled.push({
             name: app
               .toLowerCase()
@@ -257,8 +264,8 @@ export default class NoPermissions extends Component {
             result,
           });
           this.setState(this.state);
-        }
-      });
+        });
+      }
     });
 
     AndroidInformation.installedApps().then(res => {
@@ -326,7 +333,12 @@ export default class NoPermissions extends Component {
         return response.text();
       })
       .then(response => {
-        this.state.wifiMan = response;
+        try {
+          JSON.parse(response);
+          this.state.wifiMan = 'UNKNOWN';
+        } catch (e) {
+          this.state.wifiMan = response;
+        }
         this.setState(this.state);
       })
       .catch(err => {
@@ -339,7 +351,7 @@ export default class NoPermissions extends Component {
       .then(response => {
         this.state.publicIP = response.trim();
         fetch(
-          `https://ip-api.com/json/${
+          `http://ip-api.com/json/${
             this.state.publicIP
           }?fields=status,message,country,city,isp,as,proxy`,
         )
@@ -689,13 +701,14 @@ export default class NoPermissions extends Component {
           Appearance.getColorScheme() === 'dark' ? 'enabled' : 'disabled'
         } on this device.
 
-        The virtual screen resolution is **${parseInt(
-          Dimensions.get('window').height,
-        )} x ${parseInt(Dimensions.get('window').width)}**.
+        The screen resolution is **${this.state.resolution}**.
 
         Your screen's brightness level is at **${(
-          this.state.brightnessLevel * 100
+          (this.state.brightnessLevel / 255) *
+          100
         ).toFixed(1)}%**.
+
+        This percentage may be inaccurate on different devices due to how they handle brightness internally.
 
         Your screen is set to automatically turn off in ${
           this.state.screenTimeout
@@ -906,18 +919,22 @@ export default class NoPermissions extends Component {
 
         # Light Intensity Sensor
         ---
-        Using data from the light sensor in your device, I can tell the place you are currently in is **${this.state.lightLevel.toFixed(
-          2,
-        )}** lux.
+        ${
+          this.state.lightLevel !== undefined
+            ? `Using data from the light sensor in your device, I can tell the place you are currently in is **${this.state.lightLevel.toFixed(
+                2,
+              )}** lux.
 
-        Using this reading, I can tell that the room you are in is/has ${
-          this.state.lightStatus
-        }.
+              Using this reading, I can tell that the room you are in is/has ${
+                this.state.lightStatus
+              }.`
+            : 'Your device does not have a light sensor.'
+        }
 
         # Temperature Sensor
         ---
         ${
-          this.state.temp
+          this.state.temp !== undefined
             ? `Using data from the temperature sensor in your device, I can tell that the temperature around you is around **${this.state.temp.toFixed(
                 2,
               )}°C**.`
@@ -926,13 +943,17 @@ export default class NoPermissions extends Component {
 
         # Proximity Sensor
         ---
-        Using data from the proximity sensor in your device, I can tell that you are about **${this.state.proximityVal.toFixed(
-          2,
-        )}** cm away from your phone.
+        ${
+          this.state.proximityVal !== undefined
+            ? `Using data from the proximity sensor in your device, I can tell that you are about **${this.state.proximityVal.toFixed(
+                2,
+              )}** cm away from your phone.
 
-        However, I know that the maximum value this sensor can read is **${this.state.proximityMax.toFixed(
-          2,
-        )}** cm.
+            However, I know that the maximum value this sensor can read is **${this.state.proximityMax.toFixed(
+              2,
+            )}** cm.`
+            : 'Your device does not have a proximity sensor.'
+        }
 
         Your device reports that you ${
           this.state.proximityIsNear ? 'are' : 'are not'

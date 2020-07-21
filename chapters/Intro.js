@@ -1,7 +1,13 @@
 import React, {Component} from 'react';
-import {SafeAreaView, View, Text, StatusBar, StyleSheet} from 'react-native';
-import {robotoWeights, material} from 'react-native-typography';
-import * as Animatable from 'react-native-animatable';
+import {
+  SafeAreaView,
+  View,
+  Text,
+  StatusBar,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
+import {material} from 'react-native-typography';
 import {Button} from 'react-native-elements';
 
 export default class Intro extends Component {
@@ -14,7 +20,7 @@ export default class Intro extends Component {
       <>
         <StatusBar backgroundColor="#162B3C" barStyle="light-content" />
         <SafeAreaView style={styles.backgroundView}>
-          <Animatable.View animation="fadeIn" style={styles.contentView}>
+          <ScrollView contentContainerStyle={styles.contentView}>
             <Text style={[material.display3, styles.titleStyle]}>Rumi</Text>
             <Text style={[material.headline, styles.bodyStyle]}>
               Welcome to Rumi! An app designed to show you what kind of
@@ -38,7 +44,7 @@ export default class Intro extends Component {
               ]}
               containerStyle={{width: 150, borderRadius: 7}}
             />
-          </Animatable.View>
+          </ScrollView>
         </SafeAreaView>
       </>
     );
